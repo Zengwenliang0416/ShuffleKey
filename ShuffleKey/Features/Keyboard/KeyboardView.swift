@@ -16,6 +16,11 @@ struct KeyboardView: View {
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(colorScheme == .dark ? Color.black : Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
             
             // 数字网格
             VStack(spacing: 20) {
@@ -48,7 +53,6 @@ struct KeyboardView: View {
                 
                 // 0 和 .
                 HStack(spacing: 20) {
-                    // 获取最后两个按钮
                     ForEach(viewModel.keys.dropFirst(9)) { key in
                         NumberButton(key: key) {
                             viewModel.appendCharacter(key.value)
@@ -62,39 +66,28 @@ struct KeyboardView: View {
             
             // 功能按钮
             HStack(spacing: 40) {
-                // 打乱按钮
-                Button(action: viewModel.shuffleKeys) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color.blue)
-                        .clipShape(Circle())
-                }
-                .disabled(viewModel.isShuffling)
+                FunctionButton(
+                    icon: "arrow.triangle.2.circlepath",
+                    color: .blue,
+                    action: viewModel.shuffleKeys,
+                    isDisabled: viewModel.isShuffling
+                )
                 
-                // 删除按钮
-                Button(action: viewModel.deleteCharacter) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color.red)
-                        .clipShape(Circle())
-                }
+                FunctionButton(
+                    icon: "xmark",
+                    color: .red,
+                    action: viewModel.deleteCharacter
+                )
                 
-                // 清空按钮
-                Button(action: viewModel.clearText) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color.gray)
-                        .clipShape(Circle())
-                }
+                FunctionButton(
+                    icon: "xmark",
+                    color: .gray,
+                    action: viewModel.clearText
+                )
             }
             .padding(.bottom, 30)
         }
+        .background(colorScheme == .dark ? Color.black : Color(uiColor: .systemBackground))
     }
 }
 
@@ -102,17 +95,65 @@ struct KeyboardView: View {
 struct NumberButton: View {
     let key: Key
     let action: () -> Void
+    @State private var isPressed = false
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                isPressed = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isPressed = false
+                }
+            }
+            action()
+        }) {
             Text(key.value)
                 .font(.system(size: 32, weight: .regular))
-                .foregroundColor(.black)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
                 .frame(height: 60)
                 .frame(maxWidth: .infinity)
-                .background(Color.white)
-                .clipShape(Circle())
+                .background(
+                    Circle()
+                        .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                )
+                .scaleEffect(isPressed ? 0.9 : 1.0)
         }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - FunctionButton
+struct FunctionButton: View {
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    var isDisabled: Bool = false
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                isPressed = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isPressed = false
+                }
+            }
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
+                .background(color)
+                .clipShape(Circle())
+                .shadow(color: color.opacity(0.3), radius: 2, x: 0, y: 2)
+                .scaleEffect(isPressed ? 0.9 : 1.0)
+                .opacity(isDisabled ? 0.6 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(isDisabled)
     }
 }
 

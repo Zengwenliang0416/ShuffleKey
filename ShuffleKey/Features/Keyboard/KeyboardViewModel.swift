@@ -37,7 +37,7 @@ class KeyboardViewModel: ObservableObject {
             keys = newKeys
             
             if config.hapticEnabled {
-                generateHapticFeedback()
+                FeedbackGenerator.shared.generateFeedback(style: .rigid)
             }
             
             isShuffling = false
@@ -47,17 +47,26 @@ class KeyboardViewModel: ObservableObject {
     func appendCharacter(_ char: String) {
         inputText.append(char)
         if config.hapticEnabled {
-            generateHapticFeedback()
+            FeedbackGenerator.shared.generateFeedback(style: .light)
+        }
+        if config.soundEnabled {
+            FeedbackGenerator.shared.playKeySound()
         }
     }
     
     func deleteCharacter() {
         guard !inputText.isEmpty else { return }
         inputText.removeLast()
+        if config.hapticEnabled {
+            FeedbackGenerator.shared.generateFeedback(style: .medium)
+        }
     }
     
     func clearText() {
         inputText = ""
+        if config.hapticEnabled {
+            FeedbackGenerator.shared.generateFeedback(style: .heavy)
+        }
     }
     
     // MARK: - Private methods
@@ -71,11 +80,6 @@ class KeyboardViewModel: ObservableObject {
             .filter { $0.0.value != $0.1.value }
             .count
         return Double(changedCount) / Double(keys.count) >= config.minimumShufflePercentage
-    }
-    
-    private func generateHapticFeedback() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
     }
 }
 
