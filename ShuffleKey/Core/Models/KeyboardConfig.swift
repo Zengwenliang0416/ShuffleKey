@@ -35,10 +35,27 @@ struct KeyboardConfig {
         }
     }
     
+    enum InputMode {
+        case normal
+        case password
+        
+        var maskCharacter: String {
+            switch self {
+            case .normal: return ""
+            case .password: return "•"
+            }
+        }
+    }
+    
     var layoutMode: LayoutMode = .grid3x3
     var characterSet: CharacterSet = .numbers
+    var inputMode: InputMode = .normal
     var animationEnabled: Bool = true
     var hapticEnabled: Bool = true
     var soundEnabled: Bool = true
     var minimumShufflePercentage: Double = 0.3
+    
+    // 新增：密码相关配置
+    var maxPasswordLength: Int = 20  // 最大密码长度
+    var shouldClearAfterSubmit: Bool = false  // 输入完成后是否自动清空
 } 

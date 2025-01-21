@@ -6,32 +6,37 @@ class KeyboardViewModel: ObservableObject {
     @Published private(set) var keys: [Key] = []
     @Published var inputText: String = ""
     @Published var isShuffling: Bool = false
+    @Published var displayText: String = ""  // 用于显示的文本（可能包含掩码）
+    @Published var isPasswordMode: Bool = false  // 添加密码模式状态
     
     // MARK: - Properties
-    let config: KeyboardConfig
+    var config: KeyboardConfig  // 改为可变
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
     init(config: KeyboardConfig = KeyboardConfig()) {
         self.config = config
         setupKeys()
+        setupBindings()
     }
     
     // MARK: - Public methods
+    func togglePasswordMode() {
+        isPasswordMode.toggle()
+        config.inputMode = isPasswordMode ? .password : .normal
+        updateDisplayText()
+    }
+    
     func shuffleKeys() {
         guard !isShuffling else { return }
         
         withAnimation(.easeInOut(duration: 0.3)) {
             isShuffling = true
             
-            // 获取当前所有数字值
             let currentValues = Set(keys.map { $0.value })
-            
-            // 创建新的随机排列，确保使用相同的数字
             var newKeys = keys
             repeat {
                 newKeys.shuffle()
-                // 检查是否有足够的变化且没有重复数字
             } while !isValidShuffle(newKeys) || Set(newKeys.map { $0.value }) != currentValues
             
             keys = newKeys
@@ -45,7 +50,11 @@ class KeyboardViewModel: ObservableObject {
     }
     
     func appendCharacter(_ char: String) {
+        guard inputText.count < config.maxPasswordLength else { return }
+        
         inputText.append(char)
+        updateDisplayText()
+        
         if config.hapticEnabled {
             FeedbackGenerator.shared.generateFeedback(style: .light)
         }
@@ -57,6 +66,8 @@ class KeyboardViewModel: ObservableObject {
     func deleteCharacter() {
         guard !inputText.isEmpty else { return }
         inputText.removeLast()
+        updateDisplayText()
+        
         if config.hapticEnabled {
             FeedbackGenerator.shared.generateFeedback(style: .medium)
         }
@@ -64,6 +75,8 @@ class KeyboardViewModel: ObservableObject {
     
     func clearText() {
         inputText = ""
+        updateDisplayText()
+        
         if config.hapticEnabled {
             FeedbackGenerator.shared.generateFeedback(style: .heavy)
         }
@@ -73,6 +86,24 @@ class KeyboardViewModel: ObservableObject {
     private func setupKeys() {
         let characters = config.characterSet.characters
         keys = characters.enumerated().map { Key(id: $0, value: $1) }
+    }
+    
+    private func setupBindings() {
+        // 监听输入文本变化，更新显示文本
+        $inputText
+            .sink { [weak self] _ in
+                self?.updateDisplayText()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func updateDisplayText() {
+        switch config.inputMode {
+        case .normal:
+            displayText = inputText
+        case .password:
+            displayText = String(repeating: config.inputMode.maskCharacter, count: inputText.count)
+        }
     }
     
     private func isValidShuffle(_ newKeys: [Key]) -> Bool {

@@ -10,17 +10,20 @@ struct KeyboardView: View {
     
     var body: some View {
         VStack(spacing: 30) {
-            // 输入框
-            TextField("", text: $viewModel.inputText)
-                .font(.system(size: 24))
-                .multilineTextAlignment(.leading)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(colorScheme == .dark ? Color.black : Color.white)
-                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                )
+            // 输入框和模式切换
+            VStack(spacing: 12) {
+                inputField
+                
+                // 密码模式切换按钮
+                Button(action: viewModel.togglePasswordMode) {
+                    HStack(spacing: 8) {
+                        Image(systemName: viewModel.isPasswordMode ? "eye.slash" : "eye")
+                        Text(viewModel.isPasswordMode ? "密码模式" : "普通模式")
+                            .font(.subheadline)
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
             
             // 数字网格
             VStack(spacing: 20) {
@@ -88,6 +91,28 @@ struct KeyboardView: View {
             .padding(.bottom, 30)
         }
         .background(colorScheme == .dark ? Color.black : Color(uiColor: .systemBackground))
+    }
+    
+    private var inputField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !viewModel.displayText.isEmpty {
+                Text(viewModel.isPasswordMode ? "密码" : "输入内容")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Text(viewModel.displayText)
+                .font(.system(size: 24))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: 44)
+                .padding(.horizontal)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(colorScheme == .dark ? Color.black : Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+        }
+        .padding(.horizontal)
     }
 }
 
