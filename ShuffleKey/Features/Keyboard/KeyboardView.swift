@@ -9,7 +9,7 @@ struct KeyboardView: View {
     }
     
     var body: some View {
-        VStack(spacing: 30) {
+        VStack {
             // 输入框和模式切换
             VStack(spacing: 12) {
                 inputField
@@ -25,10 +25,12 @@ struct KeyboardView: View {
                 }
             }
             
+            Spacer()
+            
             // 数字网格
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 // 7-8-9
-                HStack(spacing: 20) {
+                HStack(spacing: 24) {
                     ForEach(viewModel.keys.prefix(3)) { key in
                         NumberButton(key: key) {
                             viewModel.appendCharacter(key.value)
@@ -37,7 +39,7 @@ struct KeyboardView: View {
                 }
                 
                 // 4-5-6
-                HStack(spacing: 20) {
+                HStack(spacing: 24) {
                     ForEach(viewModel.keys.dropFirst(3).prefix(3)) { key in
                         NumberButton(key: key) {
                             viewModel.appendCharacter(key.value)
@@ -46,7 +48,7 @@ struct KeyboardView: View {
                 }
                 
                 // 1-2-3
-                HStack(spacing: 20) {
+                HStack(spacing: 24) {
                     ForEach(viewModel.keys.dropFirst(6).prefix(3)) { key in
                         NumberButton(key: key) {
                             viewModel.appendCharacter(key.value)
@@ -55,7 +57,7 @@ struct KeyboardView: View {
                 }
                 
                 // 0 和 .
-                HStack(spacing: 20) {
+                HStack(spacing: 24) {
                     ForEach(viewModel.keys.dropFirst(9)) { key in
                         NumberButton(key: key) {
                             viewModel.appendCharacter(key.value)
@@ -77,13 +79,13 @@ struct KeyboardView: View {
                 )
                 
                 FunctionButton(
-                    icon: "xmark",
+                    icon: "delete.left",
                     color: .red,
                     action: viewModel.deleteCharacter
                 )
                 
                 FunctionButton(
-                    icon: "xmark",
+                    icon: "trash",
                     color: .gray,
                     action: viewModel.clearText
                 )
@@ -134,14 +136,13 @@ struct NumberButton: View {
             action()
         }) {
             Text(key.value)
-                .font(.system(size: 32, weight: .regular))
+                .font(.system(size: 48, weight: .medium))
                 .foregroundColor(colorScheme == .dark ? .white : .black)
-                .frame(height: 60)
-                .frame(maxWidth: .infinity)
+                .frame(width: 110, height: 110)
                 .background(
-                    Circle()
+                    RoundedRectangle(cornerRadius: 24)
                         .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.white)
-                        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
                 )
                 .scaleEffect(isPressed ? 0.9 : 1.0)
         }
