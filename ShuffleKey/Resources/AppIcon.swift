@@ -137,6 +137,7 @@ struct AppIcon: View {
 // MARK: - 图标导出
 extension AppIcon {
     private static let iconImages: [(filename: String, idiom: String, size: String, scale: String)] = [
+        // iPhone icons
         ("Icon-20@2x.png", "iphone", "20x20", "2x"),
         ("Icon-20@3x.png", "iphone", "20x20", "3x"),
         ("Icon-29@2x.png", "iphone", "29x29", "2x"),
@@ -145,66 +146,29 @@ extension AppIcon {
         ("Icon-40@3x.png", "iphone", "40x40", "3x"),
         ("Icon-60@2x.png", "iphone", "60x60", "2x"),
         ("Icon-60@3x.png", "iphone", "60x60", "3x"),
+        // iPad icons
+        ("Icon-20.png", "ipad", "20x20", "1x"),
+        ("Icon-20@2x-ipad.png", "ipad", "20x20", "2x"),
+        ("Icon-29.png", "ipad", "29x29", "1x"),
+        ("Icon-29@2x-ipad.png", "ipad", "29x29", "2x"),
+        ("Icon-40.png", "ipad", "40x40", "1x"),
+        ("Icon-40@2x-ipad.png", "ipad", "40x40", "2x"),
+        ("Icon-76.png", "ipad", "76x76", "1x"),
+        ("Icon-76@2x.png", "ipad", "76x76", "2x"),
+        ("Icon-83.5@2x.png", "ipad", "83.5x83.5", "2x"),  // iPad Pro
+        // App Store icon
         ("Icon-1024.png", "ios-marketing", "1024x1024", "1x")
     ]
     
     private static func createContentsJson() -> [String: Any] {
-        let images: [[String: Any]] = [
+        let images = iconImages.map { image in
             [
-                "size": "20x20",
-                "idiom": "iphone",
-                "filename": "Icon-20@2x.png",
-                "scale": "2x"
-            ],
-            [
-                "size": "20x20",
-                "idiom": "iphone",
-                "filename": "Icon-20@3x.png",
-                "scale": "3x"
-            ],
-            [
-                "size": "29x29",
-                "idiom": "iphone",
-                "filename": "Icon-29@2x.png",
-                "scale": "2x"
-            ],
-            [
-                "size": "29x29",
-                "idiom": "iphone",
-                "filename": "Icon-29@3x.png",
-                "scale": "3x"
-            ],
-            [
-                "size": "40x40",
-                "idiom": "iphone",
-                "filename": "Icon-40@2x.png",
-                "scale": "2x"
-            ],
-            [
-                "size": "40x40",
-                "idiom": "iphone",
-                "filename": "Icon-40@3x.png",
-                "scale": "3x"
-            ],
-            [
-                "size": "60x60",
-                "idiom": "iphone",
-                "filename": "Icon-60@2x.png",
-                "scale": "2x"
-            ],
-            [
-                "size": "60x60",
-                "idiom": "iphone",
-                "filename": "Icon-60@3x.png",
-                "scale": "3x"
-            ],
-            [
-                "size": "1024x1024",
-                "idiom": "ios-marketing",
-                "filename": "Icon-1024.png",
-                "scale": "1x"
+                "size": image.size,
+                "idiom": image.idiom,
+                "filename": image.filename,
+                "scale": image.scale
             ]
-        ]
+        }
         
         return [
             "images": images,
@@ -217,15 +181,27 @@ extension AppIcon {
     
     private static func getIconSpecs() -> [(size: CGFloat, name: String)] {
         [
-            (40, "Icon-20@2x.png"),    // 20pt @2x
-            (60, "Icon-20@3x.png"),    // 20pt @3x
-            (58, "Icon-29@2x.png"),    // 29pt @2x
-            (87, "Icon-29@3x.png"),    // 29pt @3x
-            (80, "Icon-40@2x.png"),    // 40pt @2x
-            (120, "Icon-40@3x.png"),   // 40pt @3x
-            (120, "Icon-60@2x.png"),   // 60pt @2x
-            (180, "Icon-60@3x.png"),   // 60pt @3x
-            (1024, "Icon-1024.png")    // 1024pt @1x
+            // iPhone
+            (40, "Icon-20@2x.png"),     // 20pt @2x
+            (60, "Icon-20@3x.png"),     // 20pt @3x
+            (58, "Icon-29@2x.png"),     // 29pt @2x
+            (87, "Icon-29@3x.png"),     // 29pt @3x
+            (80, "Icon-40@2x.png"),     // 40pt @2x
+            (120, "Icon-40@3x.png"),    // 40pt @3x
+            (120, "Icon-60@2x.png"),    // 60pt @2x
+            (180, "Icon-60@3x.png"),    // 60pt @3x
+            // iPad
+            (20, "Icon-20.png"),        // 20pt @1x
+            (40, "Icon-20@2x-ipad.png"), // 20pt @2x
+            (29, "Icon-29.png"),        // 29pt @1x
+            (58, "Icon-29@2x-ipad.png"), // 29pt @2x
+            (40, "Icon-40.png"),        // 40pt @1x
+            (80, "Icon-40@2x-ipad.png"), // 40pt @2x
+            (76, "Icon-76.png"),        // 76pt @1x
+            (152, "Icon-76@2x.png"),    // 76pt @2x
+            (167, "Icon-83.5@2x.png"),  // 83.5pt @2x (iPad Pro)
+            // App Store
+            (1024, "Icon-1024.png")     // 1024pt @1x
         ]
     }
     
