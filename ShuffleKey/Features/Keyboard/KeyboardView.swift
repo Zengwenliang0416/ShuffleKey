@@ -214,7 +214,10 @@ struct KeyboardView: View {
     
     // MARK: - Mode Toggle Button
     private var modeToggleButton: some View {
-        Button(action: viewModel.togglePasswordMode) {
+        Button {
+            HapticManager.shared.themeChange()
+            viewModel.togglePasswordMode()
+        } label: {
             HStack(spacing: 8) {
                 Image(systemName: viewModel.isPasswordMode ? "eye.slash.fill" : "eye.fill")
                 Text(viewModel.isPasswordMode ? "密码模式" : "普通模式")
@@ -297,11 +300,12 @@ struct KeyboardView: View {
     private var sizeSlider: some View {
         VStack(spacing: 8) {
             HStack {
-                Button(action: {
+                Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         settings.buttonTapAreaSize = max(settings.minTapAreaSize, settings.buttonTapAreaSize - 5)
+                        HapticManager.shared.sizeChange()
                     }
-                }) {
+                } label: {
                     Image(systemName: "minus.circle.fill")
                         .foregroundColor(themeManager.currentTheme.primary.opacity(0.6))
                         .font(.system(size: 24))
@@ -310,15 +314,21 @@ struct KeyboardView: View {
                 Slider(
                     value: $settings.buttonTapAreaSize,
                     in: settings.minTapAreaSize...settings.maxTapAreaSize,
-                    step: 1.0
+                    step: 1.0,
+                    onEditingChanged: { editing in
+                        if editing {
+                            HapticManager.shared.sizeChange()
+                        }
+                    }
                 )
                 .tint(themeManager.currentTheme.primary)
                 
-                Button(action: {
+                Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         settings.buttonTapAreaSize = min(settings.maxTapAreaSize, settings.buttonTapAreaSize + 5)
+                        HapticManager.shared.sizeChange()
                     }
-                }) {
+                } label: {
                     Image(systemName: "plus.circle.fill")
                         .foregroundColor(themeManager.currentTheme.primary.opacity(0.6))
                         .font(.system(size: 24))
@@ -368,7 +378,10 @@ struct NumberButton: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.shared.keyPress()
+            action()
+        } label: {
             Text(key.value)
                 .font(.system(size: fontSize, weight: .medium, design: .rounded))
                 .frame(width: settings.buttonTapAreaSize, height: settings.buttonTapAreaSize)
@@ -404,15 +417,30 @@ struct FunctionButton: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {
+        Button {
             withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
                 isPressed = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     isPressed = false
                 }
             }
+            // 根据图标选择不同的触感和声音
+            switch icon {
+            case "arrow.triangle.2.circlepath":
+                HapticManager.shared.shuffle()
+                SoundManager.shared.playShuffleSound()
+            case "delete.left":
+                HapticManager.shared.delete()
+                SoundManager.shared.playDeleteSound()
+            case "trash":
+                HapticManager.shared.clear()
+                SoundManager.shared.playClearSound()
+            default:
+                HapticManager.shared.themeChange()
+                SoundManager.shared.playThemeSound()
+            }
             action()
-        }) {
+        } label: {
             Image(systemName: icon)
                 .font(.system(size: 24, weight: .medium))
                 .foregroundColor(.white)
