@@ -361,19 +361,25 @@ struct NumberButton: View {
     @Environment(\.theme) var theme
     @StateObject private var settings = KeyboardSettings.shared
     
+    // 计算字体大小
+    private var fontSize: CGFloat {
+        // 按钮大小的 45%，这样可以保持良好的比例
+        return settings.buttonTapAreaSize * 0.45
+    }
+    
     var body: some View {
         Button(action: action) {
             Text(key.value)
-                .font(.system(size: min(settings.buttonTapAreaSize * 0.4, 24), weight: .medium, design: .rounded))
+                .font(.system(size: fontSize, weight: .medium, design: .rounded))
                 .frame(width: settings.buttonTapAreaSize, height: settings.buttonTapAreaSize)
                 .foregroundColor(theme.primary)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: min(12, settings.buttonTapAreaSize * 0.12))
                         .fill(Color(.systemBackground))
                         .shadow(color: theme.primary.opacity(0.1), radius: 8, x: 0, y: 4)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: min(12, settings.buttonTapAreaSize * 0.12))
                         .stroke(theme.borderGradient, lineWidth: 1)
                 )
         }
