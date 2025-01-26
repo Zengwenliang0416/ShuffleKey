@@ -153,6 +153,7 @@ private extension Color {
 struct KeyboardView: View {
     @StateObject private var viewModel: KeyboardViewModel
     @StateObject private var themeManager = ThemeManager()
+    @StateObject private var settings = KeyboardSettings.shared
     @Environment(\.colorScheme) var colorScheme
     
     init(config: KeyboardConfig = KeyboardConfig()) {
@@ -160,35 +161,43 @@ struct KeyboardView: View {
     }
     
     var body: some View {
-        ZStack {
-            backgroundView
-            
-            VStack {
-                // 输入框和模式切换
-                VStack(spacing: 16) {
-                    inputField
-                    modeToggleButton
-                }
-                .padding(.top, 20)
+        NavigationStack {
+            ZStack {
+                backgroundView
                 
-                Spacer()
-                
-                // 数字网格
-                LazyVStack(spacing: 24) {
-                    ForEach(0..<4) { row in
-                        numberRow(row: row)
+                VStack {
+                    // 输入框和模式切换
+                    VStack(spacing: 16) {
+                        inputField
+                        modeToggleButton
                     }
+                    .padding(.top, 8)
+                    
+                    Spacer()
+                    
+                    // 数字网格
+                    LazyVStack(spacing: 24) {
+                        ForEach(0..<4) { row in
+                            numberRow(row: row)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer()
+                    
+                    // 功能按钮
+                    functionButtons
+                    
+                    // 大小调节滑块
+                    sizeSlider
+                        .padding(.top, 20)
+                        .padding(.bottom, 30)
                 }
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                functionButtons
-                    .padding(.bottom, 30)
+                .padding()
             }
-            .padding()
+            .environment(\.theme, themeManager.currentTheme)
+            .navigationBarHidden(true)
         }
-        .environment(\.theme, themeManager.currentTheme)
     }
     
     // MARK: - Background View
@@ -283,6 +292,45 @@ struct KeyboardView: View {
         }
         .padding(.horizontal)
     }
+    
+    // MARK: - Size Slider
+    private var sizeSlider: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        settings.buttonTapAreaSize = max(settings.minTapAreaSize, settings.buttonTapAreaSize - 5)
+                    }
+                }) {
+                    Image(systemName: "minus.circle.fill")
+                        .foregroundColor(themeManager.currentTheme.primary.opacity(0.6))
+                        .font(.system(size: 24))
+                }
+                
+                Slider(
+                    value: $settings.buttonTapAreaSize,
+                    in: settings.minTapAreaSize...settings.maxTapAreaSize,
+                    step: 1.0
+                )
+                .tint(themeManager.currentTheme.primary)
+                
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        settings.buttonTapAreaSize = min(settings.maxTapAreaSize, settings.buttonTapAreaSize + 5)
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(themeManager.currentTheme.primary.opacity(0.6))
+                        .font(.system(size: 24))
+                }
+            }
+            
+            Text("\(Int(settings.buttonTapAreaSize))")
+                .font(.system(.caption, design: .rounded))
+                .foregroundColor(themeManager.currentTheme.primary)
+        }
+        .padding(.horizontal, 40)
+    }
 }
 
 // MARK: - Input Field Background
@@ -310,53 +358,34 @@ private struct InputFieldBackground: View {
 struct NumberButton: View {
     let key: Key
     let action: () -> Void
-    @State private var isPressed = false
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.theme) var theme
+    @StateObject private var settings = KeyboardSettings.shared
     
     var body: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                isPressed = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    isPressed = false
-                }
-            }
-            action()
-        }) {
+        Button(action: action) {
             Text(key.value)
-                .font(.system(size: 48, weight: .medium, design: .rounded))
-                .foregroundColor(colorScheme == .dark ? .white : .black)
-                .frame(width: 110, height: 110)
-                .background(NumberButtonBackground())
-                .scaleEffect(isPressed ? 0.94 : 1.0)
+                .font(.system(size: min(settings.buttonTapAreaSize * 0.4, 24), weight: .medium, design: .rounded))
+                .frame(width: settings.buttonTapAreaSize, height: settings.buttonTapAreaSize)
+                .foregroundColor(theme.primary)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: theme.primary.opacity(0.1), radius: 8, x: 0, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(theme.borderGradient, lineWidth: 1)
+                )
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(NumberButtonStyle())
     }
 }
 
-// MARK: - Number Button Background
-private struct NumberButtonBackground: View {
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.theme) var theme
-    
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28)
-                .fill(
-                    colorScheme == .dark ?
-                        Color.white.opacity(0.1) :
-                        Color.white
-                )
-                .shadow(
-                    color: Color.black.opacity(0.1),
-                    radius: 15,
-                    x: 0,
-                    y: 5
-                )
-            
-            RoundedRectangle(cornerRadius: 28)
-                .stroke(theme.borderGradient, lineWidth: 1)
-        }
+struct NumberButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
